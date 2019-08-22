@@ -1,0 +1,26 @@
+Memory layout
+
+RAMCODE_START=0x01600000 (22MB)
+RAMCODE_END  =0x02000000 (32MB)
+
+0x00000000-0x000ffffff: bottom 1 meg mem mapped stuff etc.
+0x00100000-(RAMCODE_START-1): bottom of RAMCODE_START for linux
+  0x00100000: Linux load address
+
+RAMCODE_START   + 0x000000-(RAMCODE_END - RAMCODE_START): space allocated for ramcode
+  RAMCODE_START + 0x000000-0x000ffff: ramcode
+  RAMCODE_START + 0x010000-0x001ffff: shlib table
+  RAMCODE_START + 0x020000-0x0ffffff: program load space
+  RAMCODE_START + 0x100000-0x02fffff: serial load area
+  RAMCODE_START + 0x300000-0x04fffff: decomp target area
+  RAMCODE_START + 0x500000-0x0bfffff: heap space
+  RAMCODE_START + 0xc00000-0x0cfffff: stack
+
+places that need changing when changing RAMCODE_START:
+	ROM.conf
+	monitor/monitor.cfg
+	ramcode/raq3.cfg
+	include/common/rammap.h
+
+the following things need to change if you change RAMCODE_END:
+	include/common/rammap.h

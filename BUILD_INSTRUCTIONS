@@ -1,0 +1,16 @@
+Instructions for Builing and Burning a Cobalt ROM:
+--------------------------------------------------
+
+To build the Cobalt x86 ROM, follow these steps:
+
+1) in this cobalt-rom dir, symlink 'linux' to a rom-ready linux source tree
+1) type 'make'
+2) Watch the build process
+3) Your ROM images are in the files cobalt*.rom
+
+To clean up, type 'make clean'
+To clean everything up, including the kernel symlink, type 'make distclean'
+To clean the kernel, type 'make kclean'
+
+
+$Id: BUILD_INSTRUCTIONS,v 1.2 2003/12/11 00:55:04 thockin Exp $ 

@@ -1,0 +1,47 @@
+$Id: TODO,v 1.2 2003/12/11 00:55:04 thockin Exp $
+This is a list of things I want to see checked/changed/done
+----------------------------------------------------------
+
+include the spec name in the ROM signature for easy grepping
+be consistent with POST port 0x80 codes
+remove IO and MMIO regions stuff from romcode
+do memory scrubbing before boot
+
+Make an xmodem send/receive for ROM image
+examine eeprom error states for size < 1 page
+maybe rename 'lowlevel' to 'system' ?
+set daylight savings cmd (date/time menu?)
+	date/time menu? or config menu?
+help if a cmd is misused
+help for a specific cmd
+better help mechanism
+be consistent on read_x/write_x or set_x or set_x/get_x for cmd names
+cleanup boot output
+assume .gz if bfd file specified is not there
+	handle this properly
+fail bfd and return to prompt if file specified is not there
+'FIXME' or 'fixme' comments
+debug option ROM cmd
+POST diagnostics/PCI BIST
+fix syntax for dump_pci to take 0:0 - as output by ls_pci
+make malloc and friends either NEVER fail, or printf if they do
+shell-like variables?
+most recent GCC compatibility
+PXE boot?
+
+extended CMOS flags/info storage
+	HW Noprobe - make probe routines accept this
+	boot runlevel
+	user-space visible 'first boot' ?
+	counter of soft errors
+
+romcode should leave interrupts off and NMI masked, ramcode handles and enables
+we need exception handlers, including NMI
+writeable ROMFS
+make proper EBDA and shadow-region allocation routines
+
+make stuff static where it can be
+interrupts
+Option ROM probing
+
+unify wrmsr and msr_set functions

@@ -1,0 +1,10 @@
+Notes:
+
+The size of this stage is very critical, and very delicate.  Ramcode must fit
+within the allocated space.  It is delicate because it links to a few files in
+x86/common.  Every file that ramcode refernces gets linked in.  Every file
+that gets linked in gets scanned for other dependencies, and those files get
+linked in.  It grows quickly.  It may get to the point where large files
+should not be broken up any further (logically), and we may need to link and 
+conditionally compile some files for ramcode, vs monitor.
+

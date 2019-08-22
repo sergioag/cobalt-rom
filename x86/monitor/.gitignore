@@ -1,0 +1,7 @@
+*.o
+monitor
+monitor.map
+monitor.lds
+monitor.elf
+monitor.lst
+monitor.bz2

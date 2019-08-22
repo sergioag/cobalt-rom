@@ -1,0 +1,123 @@
+Setting up memory for the Serverworks CNB LE -- 
+
+-----
+Per DIMM checks
+-----
+The following must all match or the DIMM will get rejected:
+	DIMM type == SDRAM   (SPD byte 2)
+	ECC capable          (SPD byte 11)
+	CAS latency 3 okay   (SPD byte 18)
+	DIMM width == 72     (SPD byte 6 and 7)
+	registered DIMM      (SPD byte 21)
+	SPD checksum okay    (byte-wise sum SPD bytes 0-62 = SPD byte 63)
+	valid DIMM geometry  (SPD byte row=3, col=4, banks=17,
+			      size=31, see table for valid values)
+	
+if a DIMM is valid, the MRPR and RAR registers get programmed with the
+appropriate values. 
+
+registers:
+Memory Row Presence Register (MRPR)	0x90
+	each bit corresponds to a row (e.g., bit 0 = row 0)
+
+Row Attribute Register (RAR)		0x7c - 0x7f
+	each register can hold geometry information for up to 2 rows
+	of a DIMM with the lower 4 bits holding the first row (see
+	table below for values).
+	
+per-row geometry table:
+	row   col banks size	index
+	12  x   8     4 32MB    0
+	11  x   9     2 16      1
+	11  x  10     2 32	2
+	12  x  11     4 256	3
+	13  x  11     4	512     4
+	13  x  10     2	128	5
+	12  x  10     4	128	6  
+	12  x   9     4	64	7
+	13  x  10     4	256	8
+	13  x   9     4	128	9
+	13  x   8     4	64 	10
+	12  x   9     4	64	11  (same as index 7)
+	12  x  10     4	128     12  (same as index 6)
+
+ServerWorks claims that the duplicate entries aren't a problem.
+
+
+-----
+All DIMM checks
+-----
+	refresh period = minimum value for all DIMMs, (SPD byte 12, RCR)
+	make sure that CAS latency is set to 3 (BCR2)
+	if # rows <= 2, set data buffer strength to 0. else set
+		buffer strength to 1 (Aux Options Register)
+	choose the slowest values for tRAS, tRCD and tRP (SPD bytes
+		30, 29, 27) -- all values are determined assuming
+		133MHz FSB (MTCR) 	
+	enable memory overlap only if tRC == tRP == CAS latency == 3
+		(MTCR)
+
+NOTE: a count of the number of rows is kept that's separate from the
+RAR register. it includes any DIMM that's of type SDRAM so that
+invalid memory still gets included in buffer strength calculations.
+
+registers:
+Refresh Counter Register (RCR)		0x79
+				  FSB value
+	SPD info 	rate	100MHz 	133MHz
+	0x1              3.9	0x05    0x07
+	0x2              7.8	0x0b    0x0f
+	else (0x0)      15.4    0x16    0x1e
+NOTE: RCR is originally programmed with the 133MHz value. on a 100MHz
+      system, it is set to the 100MHz value after memory has been
+      zeroed. 
+
+Memory Row Decode Registers (MRDR)	0x80 - 0x8f
+	each pair of registers specifies the lower and upper bound (in
+	16MB chunks) for a memory row (row 0 = 0x80/0x81)
+	memory row order: 6, 2, 4, 7, 3, 5, 1, 0
+
+Memory Timing Control Register (MTCR)	0x91
+	tRAS (bit 7, 5 clks if set, 6 if unset)
+	tRCD (bit 6, 2 clks if set, 3 if unset)
+	tRP  (bit 5, 2 clks if set, 3 if unset)
+	tRC  (tRAS + tRP, bits 4:3 -> 00 = 10 clks, 01 = 9 clks
+				      10 =  8 clks, 11 = 7 clks)
+	tRWL (bit 2, always unset at 2 clks)
+	memory overlapping (bit 1)
+	
+Bridge Configuration Register 2 (BCR2)	0x92
+	9-1-1-1 page timing (bit 3, must be set to 1)
+	single clock ECC (bit 2, unset)
+	CAS latency (bit 1, unset = 3)
+	memory controller enable (bit 0, set after SDRAM initialization)
+
+Auxiliary Options Register		0xfd
+	chip select buffer strength always high (bit 4 unset)
+	memory address buffer copy A and B always low (bits 3, 1 unset)
+	memory data buffer select (bit 0, set if rows > 2)
+	
+Memory Upper Limit Register (MULR)	0x70
+	value = MB/16.
+
+
+
+-----
+Initializing memory using the
+SDRAM Power On Sequence Register (SPSR)	0x7b
+-----
+	all the memory registers get programmed
+	set refresh counter register (RCR) to 0x20
+	start NOP (bit 2)
+	wait 200us (>100us)
+	stop NOP (bit 3)
+	wait 400us (>200us)
+	precharge SDRAM (bit 0)
+	wait 500us (>16 refresh cycles assuming 30.8us refresh period)
+	stop refresh (bit 4)
+	wait 120us (>> 30clocks)
+        stop pre-charging (bit 1, SDRAM Mode Register Command)
+        wait 120us (>> 30clocks)
+        start refresh (write 0)
+        enable memory controller (bit 0 of BCR2)
+        reset refresh counter to old RCR value

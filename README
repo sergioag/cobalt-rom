@@ -1,0 +1,88 @@
+$Id: README,v 1.2 2003/12/11 00:55:04 thockin Exp $
+
+Some notes:
+-------------------------
+
+* RAMcode + ROMcode is limited to 64k (1 page): if you change this:
+	fix ROM_CRFS_OFFSET in ROM.conf
+	fix romcode/reset.s (copy_rom_loop assumes sizes)
+	fix tools/makerom.pl
+	who knows what else
+
+* ROMcode must be changed in 4k chunks (in ROM.conf). If you add a chunk,
+  you will need to modify romcode/Makefile to include the extra chunk into
+  the ROMcode.
+
+* Suggested RPM requirements to build:
+  (will need to remove any conflicting RPMs first)
+	egcs-1.1.2-27.i386.rpm
+	cpp-1.1.2-27.i386.rpm
+	binutils-2.9.5.0.22-6.i386.rpm
+	nasm-0.98-1.i386.rpm
+
+* The ROM should always be padded with 0xff bytes to the full size of the
+  device.
+
+A map of the ROM physical layout:
+---------------------------------
+The ROM is made up of 16 or more pages, each of which is 64k.  We map the ROM
+into the memory space at 0xffff0000 (leaving a 64k window - 1 page).  The
+currently mapped page can be changed by accessing the flash page register (see
+eeprom.c).
+
+The physical ROM chips has some pre-defined structure to it. Here is how
+things are laid out:
+	offset		size		contents
+	------		----		--------
+Page0:
+	0x0		0x100 (256)	Signature and version strings
+	0x100		0x80 (128)	Logo and banner definitions		
+	0x180		0x80 (128)	reserved
+	0x200		0x8		Checksum and fixup 
+	0x208		0x3df8		reserved 
+	0x4000		0x9000		ramcode (stage 2)
+	0xd000		0x3000		romcode (stage 1)
+Page1 - end of device:
+	0x0		0x10000		Cobalt ROM filesystem
+
+
+Basic chronology of released rom functions:
+
+common to 2.3.x, 2.8.x roms, and 2.9.x roms:
+	flags: console, debug, rom auto-prompt
+	boot method: disk, net, rom
+	boot device: /dev/hda, /dev/hdb, ..., /dev/md1, /dev/md2, ...
+	serial number: 13 bytes
+	serial number checksum
+	cmos checksum
+
+	not so useful flags right now: cleanboot, bootcount
+
+2.3.34: only useable in raq3/4, qube3.
+	2.2 rom kernel understands ext2
+
+added in 2.8.14: only useable in xtr
+	additional flags: system fault, panic on oops, delay cache
+	    	          initialization 
+
+added in 2.9.34: useable in raq4, xtr, and 550
+        2.4 rom kernel (use nvram utility instead of cmos utility)
+	    understands ext2 and xfs
+        flags: nologo (incomplete)
+	bto from ip address w/ added cmos feature version field
+	separated boot kernel from root filesystem: rom/disk/net
+	    kernel and disk/net filesystem
+	additional boot method: boot from net kernel, boot using
+	    separate boot kernel/root fs methods
+	not exposed fields: fru fault timestamp, fru error code,
+	    fru status timestamp, fru status
+
+CMOS defaults after first boot:
+     1) boot from net (boot from net kernel for 2.9.x kernels)
+     2) the following flags set:
+           console, clean boot  (2.3.x, 2.8.x, and 2.9.x)
+	   debug                (2.8.x and 2.9.x)
+     3) default boot device is /dev/hda for raq3/4 and /dev/md1 for
+        everything else
+     4) cmos serial number will be uninitialized
+     5) everything else zeroed

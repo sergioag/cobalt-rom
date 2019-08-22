@@ -1,0 +1,11 @@
+co_mkfs
+co_ls
+co_touch
+co_cpto
+co_cpfrom
+co_cat
+co_mkdir
+co_rmdir
+co_rm
+boot_fs
+*.o

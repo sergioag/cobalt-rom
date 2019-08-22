@@ -1,0 +1,7 @@
+*.o
+ramcode
+ramcode.bin
+ramcode.elf
+ramcode.lst
+ramcode.map
+ramcode.lds

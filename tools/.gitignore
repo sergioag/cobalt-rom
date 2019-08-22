@@ -1,0 +1,4 @@
+*.o
+romcsum
+buildbin
+raw2hex

@@ -1,0 +1,37 @@
+#!/usr/bin/perl -w
+# quickie to insert a checksum into a rom
+
+use strict;
+use POSIX;
+
+my $romfile = shift;
+my $csum = shift;
+my $offset = shift;
+
+if (!defined($romfile) || !defined($csum) || !defined($offset)) {
+	usage();
+}
+
+if ($csum =~ /^0/) {
+	$csum = oct($csum);
+}
+if ($offset =~ /^0/) {
+	$offset = oct($offset);
+}
+
+# stuff the data into the ROM image at the right place
+sysopen(ROM, $romfile, O_RDWR) || die "can't sysopen $romfile";
+sysseek(ROM, $offset, SEEK_SET) || die "can't sysseek";
+
+# first stuff the checksum, then adjust
+syswrite(ROM, pack("L", $csum), 4);
+syswrite(ROM, pack("L", 0xffffffff - $csum), 4);
+
+exit(0);
+#end
+
+sub usage
+{
+	print STDERR "usage: romsetcsum <romfile> <csum> <csum offset>\n";
+	exit 1;
+}

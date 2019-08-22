@@ -1,0 +1,6 @@
+cobalt*.rom
+cobalt.logo
+buildinfo.mk
+rom.mk
+.version
+TAGS
