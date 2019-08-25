@@ -4,3 +4,4 @@ buildinfo.mk
 rom.mk
 .version
 TAGS
+linux
